@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>CastMap – Fishing Regulations</title>
+<meta name="description" content="GPS-based fishing regulations finder for all 48 lower US states"/>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#070f1c"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100%;background:#06101d;font-family:system-ui,-apple-system,sans-serif;color:#e2e8f0}
+body{display:flex;flex-direction:column}
+.hdr{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#070f1c;border-bottom:1px solid rgba(14,165,233,0.2);flex-shrink:0;position:sticky;top:0;z-index:10}
+.logo{width:42px;height:42px;background:linear-gradient(135deg,#0ea5e9,#0369a1);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 18px rgba(14,165,233,0.4);flex-shrink:0}
+.logo-name{font-size:17px;font-weight:800;letter-spacing:2px;color:#f0f9ff;text-transform:uppercase}
+.logo-sub{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#38bdf8;margin-top:1px}
+.main{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;max-width:560px;width:100%;margin:0 auto;padding-bottom:32px}
+.card{background:#0a1929;border:1px solid rgba(14,165,233,0.14);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.card-title{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#38bdf8}
+.step-circle{width:24px;height:24px;border-radius:50%;background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#0ea5e9;flex-shrink:0;transition:all .3s}
+.step-circle.done{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
+select{width:100%;background:#060e1a;color:#e2e8f0;border:1px solid rgba(14,165,233,0.22);border-radius:9px;padding:12px 14px;font-size:15px;outline:none;-webkit-appearance:none;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%230ea5e9' d='M7 10L2 4h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
+select:focus{border-color:#0ea5e9}
+.btn{width:100%;padding:15px;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(0.97)}
+.btn-blue{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;box-shadow:0 4px 18px rgba(14,165,233,0.35)}
+.btn-green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 14px rgba(34,197,94,0.3)}
+.btn-red{background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+.btn-ghost{background:rgba(14,165,233,0.08);color:#38bdf8;border:1px solid rgba(14,165,233,0.2)}
+.btn:disabled{opacity:0.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-row{display:flex;gap:10px}
+.btn-row .btn{flex:1}
+.status-bar{display:flex;align-items:center;gap:10px;padding:11px 13px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.12);border-radius:9px;font-size:13px;color:#7dd3fc}
+.dot{width:9px;height:9px;border-radius:50%;background:#334155;flex-shrink:0;transition:background .3s}
+.dot.yellow{background:#f59e0b;animation:blink 1.2s ease-in-out infinite}
+.dot.green{background:#4ade80}
+.dot.red{background:#f87171}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+.verify-box{background:rgba(14,165,233,0.07);border:2px solid rgba(14,165,233,0.28);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.verify-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#38bdf8;font-weight:700}
+.verify-name{font-size:22px;font-weight:800;color:#f0f9ff;line-height:1.2}
+.verify-sub{font-size:12px;color:#475569}
+.verify-q{font-size:14px;color:#cbd5e1;margin-top:4px}
+.reg-water{font-size:22px;font-weight:800;color:#f0f9ff;line-height:1.2}
+.reg-state{font-size:12px;color:#2d6a9f;margin-top:2px;margin-bottom:4px}
+.reg-summary{background:rgba(14,165,233,0.06);border-left:3px solid #0ea5e9;border-radius:0 8px 8px 0;padding:10px 13px;font-size:14px;color:#cbd5e1;line-height:1.65;margin:4px 0 8px}
+.sections{display:flex;flex-direction:column;gap:5px}
+.sec{border:1px solid rgba(14,165,233,0.12);border-radius:10px;overflow:hidden}
+.sec-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(255,255,255,0.02);border:none;color:#e2e8f0;font-size:14px;font-weight:600;cursor:pointer;text-align:left;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.sec-btn:active{background:rgba(14,165,233,0.09)}
+.chev{color:#0ea5e9;font-size:12px;transition:transform .2s;flex-shrink:0}
+.sec-body{display:none;padding:10px 14px 13px;border-top:1px solid rgba(14,165,233,0.08)}
+.sec-body.open{display:block}
+.sec-item{font-size:13px;color:#64748b;padding:3px 0;line-height:1.6}
+.reg-footer{margin-top:8px;padding-top:10px;border-top:1px solid rgba(14,165,233,0.08);font-size:11px;color:#1e4a6e}
+.reg-footer b{color:#0ea5e9}
+.spinner-row{display:flex;align-items:center;gap:10px;color:#2d6a9f;font-size:13px;padding:4px 0}
+.spin{width:22px;height:22px;border:2px solid rgba(14,165,233,0.15);border-top-color:#0ea5e9;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:10px 13px;font-size:13px;color:#fca5a5}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">🎣</div>
+  <div>
+    <div class="logo-name">CastMap</div>
+    <div class="logo-sub">Fishing Regulations Finder</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1: STATE -->
+  <div class="card" id="card1">
+    <div class="card-title">
+      <div class="step-circle" id="sc1">1</div>
+      Select Your State
+    </div>
+    <select id="state-sel" onchange="onStateChange()">
+      <option value="">— Choose a state —</option>
+      <option value="AL">Alabama</option><option value="AR">Arkansas</option>
+      <option value="AZ">Arizona</option><option value="CA">California</option>
+      <option value="CO">Colorado</option><option value="CT">Connecticut</option>
+      <option value="DE">Delaware</option><option value="FL">Florida</option>
+      <option value="GA">Georgia</option><option value="IA">Iowa</option>
+      <option value="ID">Idaho</option><option value="IL">Illinois</option>
+      <option value="IN">Indiana</option><option value="KS">Kansas</option>
+      <option value="KY">Kentucky</option><option value="LA">Louisiana</option>
+      <option value="MA">Massachusetts</option><option value="MD">Maryland</option>
+      <option value="ME">Maine</option><option value="MI">Michigan</option>
+      <option value="MN">Minnesota</option><option value="MO">Missouri</option>
+      <option value="MS">Mississippi</option><option value="MT">Montana</option>
+      <option value="NC">North Carolina</option><option value="ND">North Dakota</option>
+      <option value="NE">Nebraska</option><option value="NH">New Hampshire</option>
+      <option value="NJ">New Jersey</option><option value="NM">New Mexico</option>
+      <option value="NV">Nevada</option><option value="NY">New York</option>
+      <option value="OH">Ohio</option><option value="OK">Oklahoma</option>
+      <option value="OR">Oregon</option><option value="PA">Pennsylvania</option>
+      <option value="RI">Rhode Island</option><option value="SC">South Carolina</option>
+      <option value="SD">South Dakota</option><option value="TN">Tennessee</option>
+      <option value="TX">Texas</option><option value="UT">Utah</option>
+      <option value="VA">Virginia</option><option value="VT">Vermont</option>
+      <option value="WA">Washington</option><option value="WI">Wisconsin</option>
+      <option value="WV">West Virginia</option><option value="WY">Wyoming</option>
+    </select>
+  </div>
+
+  <!-- STEP 2: GPS + VERIFY -->
+  <div class="card hidden" id="card2">
+    <div class="card-title">
+      <div class="step-circle" id="sc2">2</div>
+      Find Your Water Body
+    </div>
+    <div class="status-bar">
+      <div class="dot" id="gps-dot"></div>
+      <span id="gps-txt">Tap below to detect your location</span>
+    </div>
+    <button class="btn btn-blue" id="gps-btn" onclick="startGPS()">📍 Use My GPS Location</button>
+    <div class="err hidden" id="gps-err"></div>
+
+    <!-- VERIFY -->
+    <div id="verify-section" class="hidden">
+      <div class="verify-box">
+        <div class="verify-label">📍 Nearest Water Body Detected</div>
+        <div class="verify-name" id="v-name">—</div>
+        <div class="verify-sub" id="v-coords"></div>
+        <div class="verify-q">Is this the correct body of water you are fishing?</div>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn btn-green" onclick="confirmWater(true)">✓ Yes, Correct</button>
+        <button class="btn btn-red" onclick="confirmWater(false)">✗ Not Right</button>
+      </div>
+    </div>
+
+    <!-- MANUAL FALLBACK -->
+    <div id="manual-section" class="hidden">
+      <div style="font-size:13px;color:#64748b;margin-bottom:8px">Select the body of water you are fishing:</div>
+      <select id="manual-sel"></select>
+      <button class="btn btn-blue" style="margin-top:10px" onclick="useManual()">✓ Use This Water Body</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: REGULATIONS -->
+  <div class="card hidden" id="card3">
+    <div class="card-title">
+      <div class="step-circle" id="sc3">3</div>
+      Fishing Regulations
+    </div>
+    <div class="spinner-row hidden" id="reg-loading"><div class="spin"></div>Fetching regulations…</div>
+    <div class="err hidden" id="reg-err"></div>
+    <div id="reg-output" class="hidden"></div>
+    <button class="btn btn-ghost hidden" id="restart-btn" onclick="restart()" style="margin-top:4px">← Start Over</button>
+  </div>
+
+</div>
+
+<script>
+const STATE_NAMES={AL:"Alabama",AR:"Arkansas",AZ:"Arizona",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",IA:"Iowa",ID:"Idaho",IL:"Illinois",IN:"Indiana",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",MA:"Massachusetts",MD:"Maryland",ME:"Maine",MI:"Michigan",MN:"Minnesota",MO:"Missouri",MS:"Mississippi",MT:"Montana",NC:"North Carolina",ND:"North Dakota",NE:"Nebraska",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NV:"Nevada",NY:"New York",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VA:"Virginia",VT:"Vermont",WA:"Washington",WI:"Wisconsin",WV:"West Virginia",WY:"Wyoming"};
+const WATERS={AL:["Lake Guntersville","Weiss Lake","Lake Martin","Lay Lake","Logan Martin Lake","Tallapoosa River","Alabama River","Coosa River","Neely Henry Lake","William Dannelly Reservoir"],AR:["Lake Ouachita","Bull Shoals Lake","Table Rock Lake","Greers Ferry Lake","Lake Conway","White River","Arkansas River","Millwood Lake","DeGray Lake","Lake Chicot"],AZ:["Lake Powell","Lake Havasu","Roosevelt Lake","Lake Pleasant","Saguaro Lake","Verde River","Salt River","Alamo Lake","San Carlos Lake","Bartlett Lake"],CA:["Lake Shasta","Lake Tahoe","Sacramento River","Folsom Lake","Trinity Lake","Clear Lake","San Luis Reservoir","Pyramid Lake","Castaic Lake","Silverwood Lake"],CO:["Lake Granby","Blue Mesa Reservoir","Horsetooth Reservoir","Chatfield Reservoir","Eleven Mile Reservoir","Colorado River","South Platte River","Vallecito Reservoir","Pueblo Reservoir","John Martin Reservoir"],CT:["Candlewood Lake","Connecticut River","Housatonic River","Bantam Lake","Highland Lake","Lake Zoar","Saugatuck Reservoir","Pachaug Pond","Mashapaug Lake","Coventry Lake"],DE:["Delaware Bay","Lums Pond","Trap Pond","Brandywine Creek","C&D Canal","Silver Lake","Noxontown Pond","Killens Pond","Tybouts Corner Pond","Becks Pond"],FL:["Lake Okeechobee","St. Johns River","Lake Tohopekaliga","Suwannee River","Rodman Reservoir","Lake Kissimmee","Lake George","Apalachicola River","Lake Seminole","Ocklawaha River"],GA:["Lake Lanier","West Point Lake","Lake Seminole","Lake Hartwell","Lake Allatoona","Chattahoochee River","Savannah River","Lake Oconee","Lake Sinclair","Richard B. Russell Lake"],IA:["Mississippi River","Spirit Lake","Red Rock Reservoir","Saylorville Lake","Clear Lake","Rathbun Lake","Storm Lake","Coralville Reservoir","Okoboji Lake","Iowa River"],ID:["Snake River","Lake Coeur d'Alene","Payette Lake","Henry's Lake","Salmon River","Lucky Peak Reservoir","American Falls Reservoir","Dworshak Reservoir","Anderson Ranch Reservoir","Bear Lake"],IL:["Lake Michigan","Carlyle Lake","Rend Lake","Lake Shelbyville","Crab Orchard Lake","Illinois River","Kaskaskia River","Kinkaid Lake","Sangchris Lake","Fox Chain O'Lakes"],IN:["Lake Monroe","Patoka Lake","Brookville Lake","Mississinewa Lake","Salamonie Lake","Tippecanoe River","White River","Cagles Mill Lake","Raccoon Lake","Hardy Lake"],KS:["Milford Lake","Cheney Reservoir","Tuttle Creek Lake","Elk City Lake","Clinton Lake","Pomona Lake","Marion Reservoir","Melvern Lake","Kanopolis Lake","Cedar Bluff Reservoir"],KY:["Kentucky Lake","Lake Barkley","Dale Hollow Lake","Nolin River Lake","Rough River Lake","Cumberland River","Green River Lake","Laurel River Lake","Buckhorn Lake","Cave Run Lake"],LA:["Toledo Bend Reservoir","Calcasieu Lake","Lake Pontchartrain","Atchafalaya Basin","Red River","Lake Bistineau","Caddo Lake","Lake D'Arbonne","Cross Lake","Black Lake"],MA:["Quabbin Reservoir","Wachusett Reservoir","Connecticut River","Charles River","Otis Reservoir","Deerfield River","Chicopee River","Onota Lake","Webster Lake","Long Pond"],MD:["Deep Creek Lake","Chesapeake Bay","Potomac River","Conowingo Pond","Liberty Reservoir","Loch Raven Reservoir","Prettyboy Reservoir","Savage River Reservoir","Rocky Gorge Reservoir","Triadelphia Reservoir"],ME:["Moosehead Lake","Sebago Lake","Rangeley Lake","Kennebec River","Penobscot River","Chesuncook Lake","Grand Lake","Sebec Lake","Flagstaff Lake","West Grand Lake"],MI:["Lake Michigan","Lake Huron","Lake Superior","Muskegon Lake","Torch Lake","Au Sable River","Houghton Lake","Burt Lake","Mullett Lake","Black Lake"],MN:["Mille Lacs Lake","Lake Minnetonka","Leech Lake","Red Lake","Lake Vermilion","Rainy Lake","Lake Winnibigoshish","Kabetogama Lake","Cass Lake","Lake of the Woods"],MO:["Lake of the Ozarks","Table Rock Lake","Truman Lake","Stockton Lake","Clearwater Lake","Current River","Meramec River","Mark Twain Lake","Wappapello Lake","Pomme de Terre Lake"],MS:["Ross Barnett Reservoir","Sardis Lake","Pickwick Lake","Grenada Lake","Arkabutla Lake","Pearl River","Tombigbee River","Enid Lake","Okatibbee Lake","Bogue Homa Lake"],MT:["Flathead Lake","Fort Peck Lake","Canyon Ferry Lake","Holter Lake","Clark Fork River","Missouri River","Yellowstone River","Hauser Lake","Noxon Rapids Reservoir","Hungry Horse Reservoir"],NC:["Jordan Lake","Falls Lake","Lake Norman","Kerr Lake","Fontana Lake","Roanoke River","New River","Lake Gaston","High Rock Lake","Badin Lake"],ND:["Lake Sakakawea","Devils Lake","Missouri River","Garrison Dam Tailrace","Jamestown Reservoir","Lake Ashtabula","Homme Lake","Arrowwood Lake","Bowman-Haley Lake","Patterson Lake"],NE:["Lake McConaughy","Lewis and Clark Lake","Platte River","Niobrara River","Harlan County Lake","Swanson Reservoir","Branched Oak Lake","Sherman Reservoir","Calamus Reservoir","Merritt Reservoir"],NH:["Lake Winnipesaukee","Squam Lake","Lake Sunapee","Ossipee Lake","Newfound Lake","Connecticut River","Merrimack River","Lake Massabesic","Umbagog Lake","First Connecticut Lake"],NJ:["Delaware River","Barnegat Bay","Spruce Run Reservoir","Round Valley Reservoir","Manasquan Reservoir","Lake Hopatcong","Monksville Reservoir","Wanaque Reservoir","Greenwood Lake","Budd Lake"],NM:["Elephant Butte Reservoir","Navajo Lake","Conchas Lake","Heron Lake","Caballo Reservoir","Rio Grande","Pecos River","Eagle Nest Lake","Abiquiu Lake","Storrie Lake"],NV:["Lake Mead","Lake Tahoe","Lake Mohave","Pyramid Lake","Walker Lake","Lahontan Reservoir","Ruby Lake","Wild Horse Reservoir","South Fork Reservoir","Rye Patch Reservoir"],NY:["Cayuga Lake","Seneca Lake","Lake Ontario","Hudson River","St. Lawrence River","Oneida Lake","Lake Champlain","Chautauqua Lake","Saratoga Lake","Sacandaga Reservoir"],OH:["Lake Erie","Hoover Reservoir","Caesar Creek Lake","Pymatuning Reservoir","Mosquito Creek Lake","Muskingum River","Ohio River","Alum Creek Lake","Delaware Lake","Grand Lake St. Marys"],OK:["Grand Lake","Lake Texoma","Lake Eufaula","Tenkiller Lake","Keystone Lake","Arkansas River","Red River","Lake Hudson","Fort Gibson Lake","Lake Murray"],OR:["Columbia River","Willamette River","Deschutes River","Rogue River","Klamath Lake","Henry Hagg Lake","Wickiup Reservoir","Crane Prairie Reservoir","Prineville Reservoir","Applegate Lake"],PA:["Pymatuning Reservoir","Raystown Lake","Lake Erie","Kinzua Reservoir","Susquehanna River","Delaware River","Allegheny River","Beltzville Lake","Blue Marsh Lake","Nockamixon Lake"],RI:["Scituate Reservoir","Worden Pond","Narragansett Bay","Pawcatuck River","Watchaug Pond","Stafford Pond","Point Judith Pond","Wallum Lake","Bowdish Reservoir","Olney Pond"],SC:["Lake Murray","Lake Hartwell","Lake Marion","Lake Moultrie","Lake Wateree","Santee River","Edisto River","Lake Greenwood","Lake Wylie","Lake Jocassee"],SD:["Lake Oahe","Lake Sharpe","Lake Francis Case","Lewis and Clark Lake","Big Stone Lake","Angostura Reservoir","Missouri River","Pactola Reservoir","Sheridan Lake","Lake Poinsett"],TN:["Kentucky Lake","Reelfoot Lake","Cherokee Lake","Percy Priest Lake","Norris Lake","Watts Bar Lake","Tennessee River","Cumberland River","Center Hill Lake","Dale Hollow Lake"],TX:["Sam Rayburn Reservoir","Lake Fork","Lake Amistad","Lake Conroe","Falcon Lake","Rio Grande","Guadalupe River","Caddo Lake","Lake Travis","Lake Livingston"],UT:["Lake Powell","Flaming Gorge Reservoir","Utah Lake","Strawberry Reservoir","Jordanelle Reservoir","Deer Creek Reservoir","Green River","Starvation Reservoir","Yuba Reservoir","Pineview Reservoir"],VA:["Smith Mountain Lake","John H. Kerr Reservoir","Lake Anna","Claytor Lake","Philpott Lake","New River","Rappahannock River","Buggs Island Lake","Lake Gaston","Shenandoah River"],VT:["Lake Champlain","Lake Memphremagog","Harriman Reservoir","Lake Bomoseen","Connecticut River","Missisquoi River","Otter Creek","Lake Seymour","Caspian Lake","Lake Willoughby"],WA:["Columbia River","Lake Chelan","Banks Lake","Lake Roosevelt","Rufus Woods Lake","Puget Sound","Snake River","Lake Washington","Rimrock Lake","Riffe Lake"],WI:["Lake Winnebago","Green Bay","Chippewa Flowage","Lake Geneva","Petenwell Lake","Wisconsin River","St. Croix River","Castle Rock Lake","Lake Poygan","Lac Courte Oreilles"],WV:["Summersville Lake","Burnsville Lake","Beech Fork Lake","Stonewall Jackson Lake","Cheat Lake","New River","Monongahela River","Tygart Lake","East Lynn Lake","Sutton Lake"],WY:["Flaming Gorge Reservoir","Jackson Lake","Boysen Reservoir","Pathfinder Reservoir","Seminoe Reservoir","Snake River","North Platte River","Yellowstone Lake","Buffalo Bill Reservoir","Glendo Reservoir"]};
+const SECS=[{k:"season",l:"📅 Season Dates"},{k:"limits",l:"🐟 Bag & Size Limits"},{k:"gear",l:"🎣 Gear Restrictions"},{k:"special",l:"⚠️ Special Rules"},{k:"license",l:"📋 License Requirements"},{k:"species",l:"🌊 Fish Species Present"}];
+
+let stateAbbr='',stateName='',waterBody='',userLat=null,userLng=null;
+
+function onStateChange(){
+  stateAbbr=document.getElementById('state-sel').value;
+  if(!stateAbbr)return;
+  stateName=STATE_NAMES[stateAbbr];
+  document.getElementById('sc1').classList.add('done');
+  document.getElementById('manual-sel').innerHTML=WATERS[stateAbbr].map(w=>`<option value="${w}">${w}</option>`).join('');
+  show('card2');resetStep2();
+  setTimeout(()=>document.getElementById('card2').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+function startGPS(){
+  if(!navigator.geolocation){showErr('gps-err','GPS not supported by your browser. Select water below.');showManual();return;}
+  setDot('yellow','Detecting your location…');
+  document.getElementById('gps-btn').disabled=true;
+  hide('gps-err');hide('verify-section');hide('manual-section');
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    userLat=pos.coords.latitude;userLng=pos.coords.longitude;
+    setDot('green',`Location found (${userLat.toFixed(4)}, ${userLng.toFixed(4)})`);
+    const water=await reverseGeocode(userLat,userLng);
+    waterBody=water||'Unknown water body';
+    document.getElementById('v-name').textContent=waterBody;
+    document.getElementById('v-coords').textContent=`${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+    show('verify-section');
+    document.getElementById('gps-btn').disabled=false;
+  },err=>{
+    setDot('red','Could not get location.');
+    showErr('gps-err','GPS failed: '+err.message+'. Please select your water body below.');
+    showManual();document.getElementById('gps-btn').disabled=false;
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+
+async function reverseGeocode(lat,lng){
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=13`,{headers:{'Accept-Language':'en'}});
+    const j=await r.json();const a=j.address||{};
+    return j.name||a.water||a.waterway||a.lake||a.reservoir||a.river||a.stream||a.bay||null;
+  }catch(e){return null;}
+}
+
+function confirmWater(yes){
+  if(yes){
+    document.getElementById('sc2').classList.add('done');
+    hide('verify-section');
+    show('card3');
+    setTimeout(()=>document.getElementById('card3').scrollIntoView({behavior:'smooth',block:'start'}),100);
+    fetchRegs();
+  } else {
+    hide('verify-section');
+    showManual();
+  }
+}
+
+function showManual(){show('manual-section');}
+
+function useManual(){
+  waterBody=document.getElementById('manual-sel').value;
+  if(!waterBody)return;
+  document.getElementById('sc2').classList.add('done');
+  show('card3');
+  setTimeout(()=>document.getElementById('card3').scrollIntoView({behavior:'smooth',block:'start'}),100);
+  fetchRegs();
+}
+
+async function fetchRegs(){
+  show('reg-loading');hide('reg-err');hide('reg-output');hide('restart-btn');
+  const coordNote=userLat?`GPS coordinates: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}.`:'';
+  const prompt=`You are a US fishing regulations expert. State: ${stateName}, Water body: "${waterBody}". ${coordNote} Provide accurate regulations specific to this water body in ${stateName}. Include both statewide rules AND any special regulations unique to ${waterBody}. Return ONLY valid JSON no markdown:\n{"waterBody":"${waterBody}","state":"${stateName}","summary":"2-3 sentence overview of fishing at this specific water","season":["3-5 season date items specific to this water if possible"],"limits":["3-5 bag and size limit items for key species"],"gear":["3-4 gear and bait rule items"],"special":["3-4 special rules unique to this water body — slot limits, C&R zones, closures etc"],"license":["2-3 license and permit items for ${stateName}"],"species":["5-7 sport fish species found in ${waterBody}"],"stateAgency":"full official name of ${stateName} fish and wildlife agency"}`;
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Server error '+res.status);}
+    const d=await res.json();
+    const txt=(d.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const r=JSON.parse(txt);
+    hide('reg-loading');renderRegs(r);show('reg-output');show('restart-btn');
+    document.getElementById('sc3').classList.add('done');
+  }catch(e){
+    hide('reg-loading');
+    showErr('reg-err','⚠️ '+(e.message||'Failed to load regulations. Please try again.'));
+    show('restart-btn');
+  }
+}
+
+function renderRegs(r){
+  const $out=document.getElementById('reg-output');
+  const sHTML=SECS.filter(s=>r[s.k]?.length).map(({k,l})=>`<div class="sec"><button class="sec-btn" onclick="togSec(this)"><span>${l}</span><span class="chev">▼</span></button><div class="sec-body">${r[k].map(i=>`<div class="sec-item">• ${i}</div>`).join('')}</div></div>`).join('');
+  $out.innerHTML=`<div class="reg-water">${r.waterBody}</div><div class="reg-state">${r.state}</div>${r.summary?`<div class="reg-summary">${r.summary}</div>`:''}<div class="sections">${sHTML}</div><div class="reg-footer">⚡ AI-generated — always verify with <b>${r.stateAgency||'your state fish & wildlife agency'}</b> before fishing.</div>`;
+}
+function togSec(btn){const b=btn.nextElementSibling,c=btn.querySelector('.chev');b.classList.toggle('open');c.style.transform=b.classList.contains('open')?'rotate(180deg)':'none';}
+function show(id){document.getElementById(id).classList.remove('hidden');}
+function hide(id){document.getElementById(id).classList.add('hidden');}
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.remove('hidden');}
+function setDot(c,txt){document.getElementById('gps-dot').className='dot'+(c?' '+c:'');document.getElementById('gps-txt').textContent=txt;}
+function resetStep2(){setDot('','Tap below to detect your location');document.getElementById('gps-btn').disabled=false;hide('gps-err');hide('verify-section');hide('manual-section');userLat=null;userLng=null;}
+function restart(){waterBody='';userLat=null;userLng=null;hide('card3');hide('reg-output');hide('reg-err');hide('reg-loading');hide('restart-btn');document.getElementById('sc2').classList.remove('done');document.getElementById('sc3').classList.remove('done');resetStep2();setTimeout(()=>document.getElementById('card2').scrollIntoView({behavior:'smooth',block:'start'}),100);}
+</script>
+</body>
+</html>
